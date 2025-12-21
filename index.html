@@ -423,27 +423,29 @@
       document.getElementById("statusEl").textContent = "Ready";
     }
 
-    function scaleStageToFit() {
-      const stage = document.getElementById("stage");
-      if (!stage) return;
+ function scaleStageToFit() {
+  const stage = document.getElementById("stage");
+  if (!stage) return;
 
-      const DESIGN_WIDTH = 1280;
-      stage.style.transform = "none";
-      stage.style.left = "50%";
+  const DESIGN_WIDTH = 1280;
+  const DESIGN_HEIGHT = 900; // Adjust if your background is different
+  
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const SAFE_MARGIN = 16;
 
-      const viewportW = window.innerWidth;
-      const viewportH = window.innerHeight;
-      const SAFE_MARGIN = 8;
+  // Calculate scale to fit viewport (both down AND up if needed)
+  const scaleX = (viewportW - SAFE_MARGIN) / DESIGN_WIDTH;
+  const scaleY = (viewportH - SAFE_MARGIN) / DESIGN_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
 
-      const rect = stage.getBoundingClientRect();
-      const scaleX = (viewportW - SAFE_MARGIN) / DESIGN_WIDTH;
-      const scaleY = (viewportH - SAFE_MARGIN) / rect.height;
-      const scale = Math.min(scaleX, scaleY);
-
-      stage.style.transform = `translateX(-50%) scale(${scale})`;
-      stage.style.transformOrigin = "top center";
-    }
-
+  // Apply fixed width, then scale
+  stage.style.width = DESIGN_WIDTH + "px";
+  stage.style.transform = `scale(${scale})`;
+  stage.style.transformOrigin = "top center";
+  stage.style.margin = "0 auto";
+  stage.style.position = "relative";
+}
     // ===============================
     // INITIALIZATION
     // ===============================

@@ -1,0 +1,15 @@
+{
+  "name": "double-diamond-slot",
+  "version": "1.0.0",
+  "description": "Double Diamond slot machine with test harness",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "test": "node test-harness.js 1000000",
+    "test:quick": "node test-harness.js 100000",
+    "test:thorough": "node test-harness.js 10000000"
+  },
+  "keywords": ["slot", "casino", "simulation"],
+  "author": "",
+  "license": "ISC"
+}

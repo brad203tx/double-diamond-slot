@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Test outputs
+*.csv
+summary.csv
+par_sheet.csv
+symbol_frequency.csv
+virtual_reel_weights.csv
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

@@ -47,7 +47,7 @@ export const PAYOUT_TABLE = {
 // Game configuration
 export const GAME_CONFIG = {
   DEFAULT_BALANCE: 1000,
-  BIG_WIN_THRESHOLD_PER_COIN: 50,
+  BIG_WIN_THRESHOLD_PER_COIN: 30,
   SPIN_TIME: 1800,
   STAGGER_MS: 250
 };

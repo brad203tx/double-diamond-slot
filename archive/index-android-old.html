@@ -19,7 +19,7 @@
       margin: 0;
       padding: 0;
     }
-
+    
     .stage {
       position: relative;
       width: 1280px;
@@ -44,7 +44,7 @@
       pointer-events: none;
       z-index: 2;
     }
-
+    
     .reel {
       position: absolute;
       overflow: hidden;
@@ -53,7 +53,7 @@
       background: transparent;
       z-index: 2;
     }
-
+    
     .reel .strip {
       position: absolute;
       left: 0;
@@ -61,7 +61,7 @@
       will-change: transform;
       background: white;
     }
-
+    
     .reel .strip img {
       display: block;
       width: 100%;
@@ -94,7 +94,7 @@
       display: flex;
       gap: 12px;
     }
-
+    
     button {
       padding: 14px 26px;
       border-radius: 8px;
@@ -104,11 +104,11 @@
       cursor: pointer;
       height: 100%;
     }
-
+    
     #spinBtn {
       background: #ffd200;
     }
-
+    
     #resetBtn {
       background: #6b7280;
       color: #fff;
@@ -170,7 +170,7 @@
       color: #ffd200;
       cursor: pointer;
     }
-
+    
     .bet-btn.active {
       background: #ffd200;
       color: #000;
@@ -179,33 +179,31 @@
     .info-row .label {
       color: #ffd200;
     }
-
+    
     .info-row .value {
       color: #ffffff;
     }
   </style>
 </head>
-
 <body>
   <div class="stage" id="stage">
-    <!-- SPLASH OVERLAY -->
     <div id="splashOverlay" style="position:absolute;left:0;top:0;width:100%;height:100%;background:#000;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;">
       <img src="./assets/ddsplash.png" alt="Double Diamond" style="max-width:90%;max-height:70%;margin-bottom:24px;" />
       <button id="splashBtn" class="splash-btn">TAP TO PLAY</button>
     </div>
 
-   <img src="./assets/slotbck_2.png" class="machine-bg" id="bgImg" />
+    <img src="./assets/slotbck_2.png" class="machine-bg" id="bgImg" />
     <div class="machine-frame" id="machineFrame"></div>
 
     <div id="viewportLayer" class="reel-viewport"></div>
-
+    
     <div id="winOverlay" style="display:none;position:absolute;left:0;top:140px;width:100%;text-align:center;z-index:4;pointer-events:none;">
       <div id="winOverlayBox" style="display:inline-block;background:rgba(0,0,0,0.65);border:3px solid #ffd200;border-radius:14px;padding:18px 36px;font-size:48px;font-weight:900;color:#ffd200;box-shadow:0 0 40px rgba(255,210,0,0.9);">
         WIN <span id="winOverlayAmt">0</span>
       </div>
     </div>
-
-   <img id="confetti" src="./assets/confetti.gif" style="display:none;position:absolute;left:0;top:0;width:100%;height:100%;z-index:10;pointer-events:none;" />
+    
+    <img id="confetti" src="./assets/confetti.gif" style="display:none;position:absolute;left:0;top:0;width:100%;height:100%;z-index:10;pointer-events:none;" />
 
     <div class="hud" id="statusEl">Ready</div>
 
@@ -242,16 +240,224 @@
     </div>
   </div>
 
-  <script type="module">
-    import { SYMBOLS, SYMBOL_HEIGHTS, GAME_CONFIG } from './core/constants.js';
-    import { PHYSICAL_REEL, PHYSICAL_STOP_SYMBOL } from './core/reels.js';
-    import { GEOMETRY } from './core/geometry.js';
-    import { spin } from './core/spin.js';
-    import { evaluate } from './core/payout.js';
+  <script>
+    // ==========================================
+    // BUNDLED CORE MODULES (No ES6 imports)
+    // ==========================================
+    
+    // core/constants.js
+    const SYMBOLS = {
+      BLANK: "./assets/blank.png",
+      SINGLE_BAR: "./assets/singleBarReelIcon.png",
+      DOUBLE_BAR: "./assets/doubleBarReelIcon.png",
+      TRIPLE_BAR: "./assets/tripleBarReelIcon.png",
+      SEVEN: "./assets/sevenReelIcon.png",
+      DOUBLE_DIAMOND: "./assets/doublediaReelIcon.png",
+      CHERRY: "./assets/cheries.png"
+    };
 
-    // ===============================
-    // GAME STATE
-    // ===============================
+    const SYMBOL_HEIGHTS = {
+      BLANK: 105,
+      SINGLE_BAR: 210,
+      DOUBLE_BAR: 210,
+      TRIPLE_BAR: 210,
+      SEVEN: 210,
+      DOUBLE_DIAMOND: 210,
+      CHERRY: 210
+    };
+
+    const PAYOUT_TABLE = {
+      JACKPOT: 800,
+      SEVEN: 80,
+      TRIPLE_BAR: 40,
+      DOUBLE_BAR: 25,
+      SINGLE_BAR: 10,
+      CHERRY_3: 10,
+      MIXED_BARS: 5,
+      CHERRY_2: 5,
+      CHERRY_1: 2
+    };
+
+    const GAME_CONFIG = {
+      DEFAULT_BALANCE: 1000,
+      BIG_WIN_THRESHOLD_PER_COIN: 30,
+      SPIN_TIME: 1800,
+      STAGGER_MS: 250
+    };
+
+    // core/reels.js
+    const PHYSICAL_REEL = [
+      "BLANK_A", "SEVEN_A", "BLANK_B", "SINGLE_BAR_A",
+      "BLANK_C", "DOUBLE_DIAMOND_A", "BLANK_D", "TRIPLE_BAR_A",
+      "BLANK_E", "CHERRY_A", "BLANK_F", "DOUBLE_BAR_A",
+      "BLANK_G", "SEVEN_B", "BLANK_H", "SINGLE_BAR_B",
+      "BLANK_I", "DOUBLE_DIAMOND_B", "BLANK_J", "TRIPLE_BAR_B",
+      "BLANK_K", "DOUBLE_BAR_B"
+    ];
+
+    const PHYSICAL_STOP_SYMBOL = {
+      BLANK_A: "BLANK", BLANK_B: "BLANK", BLANK_C: "BLANK", BLANK_D: "BLANK",
+      BLANK_E: "BLANK", BLANK_F: "BLANK", BLANK_G: "BLANK", BLANK_H: "BLANK",
+      BLANK_I: "BLANK", BLANK_J: "BLANK", BLANK_K: "BLANK",
+      SINGLE_BAR_A: "SINGLE_BAR", SINGLE_BAR_B: "SINGLE_BAR",
+      DOUBLE_BAR_A: "DOUBLE_BAR", DOUBLE_BAR_B: "DOUBLE_BAR",
+      TRIPLE_BAR_A: "TRIPLE_BAR", TRIPLE_BAR_B: "TRIPLE_BAR",
+      SEVEN_A: "SEVEN", SEVEN_B: "SEVEN",
+      DOUBLE_DIAMOND_A: "DOUBLE_DIAMOND", DOUBLE_DIAMOND_B: "DOUBLE_DIAMOND",
+      CHERRY_A: "CHERRY"
+    };
+
+    const VIRTUAL_REELS = {
+      REEL1: [
+        "BLANK_A", "SINGLE_BAR_A", "BLANK_B", "SINGLE_BAR_B", "DOUBLE_BAR_A",
+        "SINGLE_BAR_A", "SINGLE_BAR_B", "BLANK_C", "TRIPLE_BAR_A", "BLANK_D",
+        "BLANK_E", "BLANK_F", "DOUBLE_BAR_B", "BLANK_G", "SINGLE_BAR_A",
+        "BLANK_H", "SINGLE_BAR_B", "SEVEN_A", "BLANK_I", "SINGLE_BAR_A",
+        "BLANK_J", "DOUBLE_DIAMOND_A", "BLANK_K", "BLANK_A", "SINGLE_BAR_B",
+        "SINGLE_BAR_A", "BLANK_B", "BLANK_C", "SINGLE_BAR_B", "BLANK_D",
+        "CHERRY_A", "SINGLE_BAR_A", "BLANK_E", "SINGLE_BAR_B", "DOUBLE_BAR_A",
+        "BLANK_F", "BLANK_G", "SINGLE_BAR_A", "DOUBLE_BAR_B", "SINGLE_BAR_B",
+        "BLANK_H", "SINGLE_BAR_A", "SEVEN_B", "BLANK_I", "SINGLE_BAR_B",
+        "BLANK_J", "BLANK_K", "BLANK_A", "SINGLE_BAR_A", "BLANK_B",
+        "SINGLE_BAR_B", "DOUBLE_BAR_A", "BLANK_C", "SINGLE_BAR_A", "SINGLE_BAR_B",
+        "TRIPLE_BAR_B", "BLANK_D", "SINGLE_BAR_A", "BLANK_E", "DOUBLE_BAR_B",
+        "BLANK_F", "BLANK_G", "SINGLE_BAR_B", "BLANK_H", "BLANK_I",
+        "BLANK_J", "SINGLE_BAR_A", "BLANK_K", "SINGLE_BAR_B", "BLANK_A",
+        "DOUBLE_BAR_A", "BLANK_B"
+      ],
+      REEL2: [
+        "BLANK_A", "SINGLE_BAR_A", "BLANK_B", "SINGLE_BAR_B", "DOUBLE_BAR_A",
+        "SINGLE_BAR_A", "SINGLE_BAR_B", "BLANK_C", "TRIPLE_BAR_A", "BLANK_D",
+        "BLANK_E", "BLANK_F", "DOUBLE_BAR_B", "BLANK_G", "SINGLE_BAR_A",
+        "BLANK_H", "SINGLE_BAR_B", "SEVEN_A", "BLANK_I", "SINGLE_BAR_A",
+        "BLANK_J", "DOUBLE_DIAMOND_A", "BLANK_K", "BLANK_A", "SINGLE_BAR_B",
+        "SINGLE_BAR_A", "BLANK_B", "BLANK_C", "SINGLE_BAR_B", "BLANK_D",
+        "CHERRY_A", "SINGLE_BAR_A", "BLANK_E", "SINGLE_BAR_B", "DOUBLE_BAR_A",
+        "BLANK_F", "BLANK_G", "SINGLE_BAR_A", "DOUBLE_BAR_B", "SINGLE_BAR_B",
+        "BLANK_H", "SINGLE_BAR_A", "SEVEN_B", "BLANK_I", "SINGLE_BAR_B",
+        "BLANK_J", "BLANK_K", "BLANK_A", "SINGLE_BAR_A", "BLANK_B",
+        "SINGLE_BAR_B", "DOUBLE_BAR_A", "BLANK_C", "SINGLE_BAR_A", "SINGLE_BAR_B",
+        "TRIPLE_BAR_B", "BLANK_D", "SINGLE_BAR_A", "BLANK_E", "DOUBLE_BAR_B",
+        "BLANK_F", "BLANK_G", "SINGLE_BAR_B", "BLANK_H", "BLANK_I",
+        "BLANK_J", "SINGLE_BAR_A", "BLANK_K", "SINGLE_BAR_B", "BLANK_A",
+        "DOUBLE_BAR_A", "BLANK_B"
+      ],
+      REEL3: [
+        "BLANK_A", "SINGLE_BAR_A", "BLANK_B", "SINGLE_BAR_B", "DOUBLE_BAR_A",
+        "SINGLE_BAR_A", "SINGLE_BAR_B", "BLANK_C", "TRIPLE_BAR_A", "BLANK_D",
+        "BLANK_E", "BLANK_F", "DOUBLE_BAR_B", "BLANK_G", "SINGLE_BAR_A",
+        "BLANK_H", "SINGLE_BAR_B", "SEVEN_A", "BLANK_I", "SINGLE_BAR_A",
+        "BLANK_J", "DOUBLE_DIAMOND_A", "BLANK_K", "BLANK_A", "SINGLE_BAR_B",
+        "SINGLE_BAR_A", "BLANK_B", "BLANK_C", "SINGLE_BAR_B", "BLANK_D",
+        "CHERRY_A", "SINGLE_BAR_A", "BLANK_E", "SINGLE_BAR_B", "DOUBLE_BAR_A",
+        "BLANK_F", "BLANK_G", "SINGLE_BAR_A", "DOUBLE_BAR_B", "SINGLE_BAR_B",
+        "BLANK_H", "SINGLE_BAR_A", "SEVEN_B", "BLANK_I", "SINGLE_BAR_B",
+        "BLANK_J", "BLANK_K", "BLANK_A", "SINGLE_BAR_A", "BLANK_B",
+        "SINGLE_BAR_B", "DOUBLE_BAR_A", "BLANK_C", "SINGLE_BAR_A", "SINGLE_BAR_B",
+        "TRIPLE_BAR_B", "BLANK_D", "SINGLE_BAR_A", "BLANK_E", "DOUBLE_BAR_B",
+        "BLANK_F", "BLANK_G", "SINGLE_BAR_B", "BLANK_H", "BLANK_I",
+        "BLANK_J", "SINGLE_BAR_A", "BLANK_K", "SINGLE_BAR_B", "BLANK_A",
+        "DOUBLE_BAR_A", "BLANK_B"
+      ]
+    };
+
+    // core/geometry.js
+    function buildPhysicalGeometry() {
+      let offset = 0;
+      const stops = [];
+
+      PHYSICAL_REEL.forEach((stopId, index) => {
+        const symbol = PHYSICAL_STOP_SYMBOL[stopId];
+        const height = SYMBOL_HEIGHTS[symbol];
+        const centerY = offset + height / 2;
+        
+        stops.push({ index, stopId, symbol, height, centerY });
+        offset += height;
+      });
+
+      return { stops, totalHeight: offset };
+    }
+
+    const GEOMETRY = buildPhysicalGeometry();
+
+    // core/spin.js
+    function spin() {
+      const results = [];
+      const symbols = [];
+      
+      for (let reelIdx = 0; reelIdx < 3; reelIdx++) {
+        const result = pickWeightedStop(reelIdx);
+        results.push(result);
+        symbols.push(result.symbol);
+      }
+      
+      return { stops: results, symbols };
+    }
+
+    function pickWeightedStop(reelIndex) {
+      const virtualReel = VIRTUAL_REELS[`REEL${reelIndex + 1}`];
+      const virtualStopId = virtualReel[Math.floor(Math.random() * virtualReel.length)];
+      const physicalIndex = PHYSICAL_REEL.indexOf(virtualStopId);
+      const symbol = PHYSICAL_STOP_SYMBOL[virtualStopId];
+      
+      return { stopId: virtualStopId, physicalIndex, symbol };
+    }
+
+    // core/payout.js
+    function evaluate(symbols, coins = 1) {
+      const wilds = symbols.filter(s => s === "DOUBLE_DIAMOND").length;
+      const nonWild = symbols.filter(s => s !== "DOUBLE_DIAMOND");
+
+      if (wilds === 3) {
+        return { type: "JACKPOT", payout: PAYOUT_TABLE.JACKPOT * coins };
+      }
+
+      const wildMultiplier = wilds === 2 ? 4 : wilds === 1 ? 2 : 1;
+
+      if (nonWild.length > 0) {
+        const sym = nonWild[0];
+        if (nonWild.every(s => s === sym)) {
+          const base = PAYOUT_TABLE[sym] || 0;
+          if (base > 0) {
+            return { type: sym, payout: base * wildMultiplier * coins };
+          }
+        }
+      }
+
+      if (symbols.every(s => s.includes("BAR") || s === "DOUBLE_DIAMOND")) {
+        return { 
+          type: "MIXED_BARS", 
+          payout: PAYOUT_TABLE.MIXED_BARS * wildMultiplier * coins 
+        };
+      }
+
+      const cherryCount = symbols.filter(s => s === "CHERRY").length;
+      if (cherryCount === 3) {
+        return { 
+          type: "CHERRY_3", 
+          payout: PAYOUT_TABLE.CHERRY_3 * wildMultiplier * coins 
+        };
+      }
+      if (cherryCount === 2) {
+        return { 
+          type: "CHERRY_2", 
+          payout: PAYOUT_TABLE.CHERRY_2 * wildMultiplier * coins 
+        };
+      }
+      if (cherryCount === 1) {
+        return { 
+          type: "CHERRY_1", 
+          payout: PAYOUT_TABLE.CHERRY_1 * wildMultiplier * coins 
+        };
+      }
+
+      return { type: "LOSE", payout: 0 };
+    }
+
+    // ==========================================
+    // GAME LOGIC
+    // ==========================================
+    
     let balance = GAME_CONFIG.DEFAULT_BALANCE;
     let coins = 10;
     let lastWin = 0;
@@ -271,17 +477,13 @@
       });
     }
 
-    // ===============================
-    // BUILD REEL STRIPS
-    // ===============================
     function createReelElement() {
       const reel = document.createElement("div");
       reel.className = "reel";
-
+      
       const strip = document.createElement("div");
       strip.className = "strip";
 
-      // Repeat physical reel 3x for seamless looping
       for (let repeat = 0; repeat < 3; repeat++) {
         PHYSICAL_REEL.forEach(stopId => {
           const symbol = PHYSICAL_STOP_SYMBOL[stopId];
@@ -313,14 +515,11 @@
       }
     }
 
-    // ===============================
-    // SPIN LOGIC
-    // ===============================
     function spinAll() {
       const statusEl = document.getElementById("statusEl");
-
+      
       if (spinning || balance < coins) return;
-
+      
       spinning = true;
       balance -= coins;
       lastWin = 0;
@@ -333,21 +532,19 @@
 
       console.log("Spin result:", spinResult);
 
-      // Animate each reel
       reels.forEach((reel, reelIndex) => {
         const strip = reel.querySelector(".strip");
         const target = spinResult.stops[reelIndex];
 
         animateReel(strip, reelIndex, target, () => {
           reelsFinished++;
-
+          
           if (reelsFinished === 3) {
             spinning = false;
-
-            // Evaluate payout
+            
             const payoutResult = evaluate(spinResult.symbols, coins);
             console.log("Payout result:", payoutResult);
-
+            
             lastWin = payoutResult.payout;
             balance += payoutResult.payout;
             updateHUD();
@@ -376,19 +573,15 @@
     function animateReel(strip, reelIndex, target, onComplete) {
       const reelHeight = strip.parentElement.clientHeight;
       const stripTotalHeight = GEOMETRY.totalHeight;
-
-      // Get target geometry
+      
       const targetStop = GEOMETRY.stops[target.physicalIndex];
-
-      // Calculate final position to center the target symbol
       const targetOffset = targetStop.centerY - reelHeight / 2;
-
-      // Add spins (land in middle copy)
+      
       const cycles = 3;
       const middleCopyOffset = stripTotalHeight;
       const finalY = middleCopyOffset + targetOffset;
       const totalTravel = stripTotalHeight * cycles + finalY;
-
+      
       const start = performance.now();
       const duration = GAME_CONFIG.SPIN_TIME + reelIndex * GAME_CONFIG.STAGGER_MS;
 
@@ -399,7 +592,7 @@
 
         const currentY = eased * totalTravel;
         const displayY = currentY % stripTotalHeight;
-
+        
         strip.style.transform = `translateY(${-displayY}px)`;
 
         if (progress < 1) {
@@ -413,9 +606,6 @@
       requestAnimationFrame(frame);
     }
 
-    // ===============================
-    // RESET & SCALING
-    // ===============================
     function resetGame() {
       balance = GAME_CONFIG.DEFAULT_BALANCE;
       lastWin = 0;
@@ -423,32 +613,31 @@
       document.getElementById("statusEl").textContent = "Ready";
     }
 
- function scaleStageToFit() {
-  const stage = document.getElementById("stage");
-  if (!stage) return;
+    function scaleStageToFit() {
+      const stage = document.getElementById("stage");
+      if (!stage) return;
 
-  const DESIGN_WIDTH = 1280;
-  const DESIGN_HEIGHT = 900; // Adjust if your background is different
-  
-  const viewportW = window.innerWidth;
-  const viewportH = window.innerHeight;
-  const SAFE_MARGIN = 16;
+      const DESIGN_WIDTH = 1280;
+      const DESIGN_HEIGHT = 900;
+      
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+      const SAFE_MARGIN = 16;
 
-  // Calculate scale to fit viewport (both down AND up if needed)
-  const scaleX = (viewportW - SAFE_MARGIN) / DESIGN_WIDTH;
-  const scaleY = (viewportH - SAFE_MARGIN) / DESIGN_HEIGHT;
-  const scale = Math.min(scaleX, scaleY);
+      const scaleX = (viewportW - SAFE_MARGIN) / DESIGN_WIDTH;
+      const scaleY = (viewportH - SAFE_MARGIN) / DESIGN_HEIGHT;
+      const scale = Math.min(scaleX, scaleY);
 
-  // Apply fixed width, then scale
-  stage.style.width = DESIGN_WIDTH + "px";
-  stage.style.transform = `scale(${scale})`;
-  stage.style.transformOrigin = "top center";
-  stage.style.margin = "0 auto";
-  stage.style.position = "relative";
-}
-    // ===============================
+      stage.style.width = DESIGN_WIDTH + "px";
+      stage.style.transform = `scale(${scale})`;
+      stage.style.transformOrigin = "top center";
+      stage.style.margin = "0 auto";
+      stage.style.position = "relative";
+    }
+
+    // ==========================================
     // INITIALIZATION
-    // ===============================
+    // ==========================================
     window.addEventListener("load", () => {
       initReels();
       resetGame();
@@ -465,15 +654,13 @@
         }, { once: true });
       }
 
-      // Event listeners
       document.getElementById("spinBtn").addEventListener("click", spinAll);
       document.getElementById("resetBtn").addEventListener("click", resetGame);
-
+      
       document.querySelectorAll(".bet-btn").forEach(btn => {
         btn.addEventListener("click", () => setBet(Number(btn.dataset.bet)));
       });
 
-      // Keyboard support
       document.addEventListener("keydown", (e) => {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();

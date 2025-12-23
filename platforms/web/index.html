@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Double Diamond – Physical Reel</title>
+  <style>
+    :root {
+      --bg-width: 1280px;
+    }
+    html, body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      display: block;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .stage {
+      position: relative;
+      width: 1280px;
+      margin: 0 auto;
+    }
+
+    .machine-bg {
+      display: block;
+      width: 1280px;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .reel-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .reel {
+      position: absolute;
+      overflow: hidden;
+      width: 311px;
+      height: 425px;
+      background: transparent;
+      z-index: 2;
+    }
+
+    .reel .strip {
+      position: absolute;
+      left: 0;
+      top: 0;
+      will-change: transform;
+      background: white;
+    }
+
+    .reel .strip img {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .reel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(255, 0, 255, 0.1);
+      pointer-events: none;
+    }
+
+    @keyframes winPulse {
+      0% { box-shadow: 0 0 0 rgba(255, 210, 0, 0); }
+      50% { box-shadow: 0 0 25px rgba(255, 210, 0, 0.9); }
+      100% { box-shadow: 0 0 0 rgba(255, 210, 0, 0); }
+    }
+
+    #infoPanel.win-pulse {
+      animation: winPulse 1.2s ease-in-out;
+    }
+
+    .controls {
+      position: relative;
+      margin: 10px;
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 14px 26px;
+      border-radius: 8px;
+      border: 0;
+      font-weight: 800;
+      font-size: 22px;
+      cursor: pointer;
+      height: 100%;
+    }
+
+    #spinBtn {
+      background: #ffd200;
+    }
+
+    #resetBtn {
+      background: #6b7280;
+      color: #fff;
+    }
+
+    .splash-btn {
+      height: auto;
+      padding: 6px 12px;
+      font-size: 18px;
+      line-height: 1.1;
+      border-radius: 8px;
+      border: 3px solid #22c55e;
+      background: #22c55e;
+      color: #000;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+      align-self: center;
+    }
+
+    .hud {
+      position: relative;
+      padding: 8px 12px;
+      color: #ddd;
+    }
+
+    #infoPanel {
+      position: absolute;
+      left: 50px;
+      top: 629px;
+      width: 1150px;
+      padding: 2px 2px;
+      background: rgba(0, 0, 0, 0.55);
+      border: none;
+      border-radius: 10px;
+      z-index: 3;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .info-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 0 12px;
+    }
+
+    .bet-btn {
+      padding: 6px 10px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 6px;
+      border: 2px solid #ffd200;
+      background: rgba(0, 0, 0, 0.6);
+      color: #ffd200;
+      cursor: pointer;
+    }
+
+    .bet-btn.active {
+      background: #ffd200;
+      color: #000;
+    }
+
+    .info-row .label {
+      color: #ffd200;
+    }
+
+    .info-row .value {
+      color: #ffffff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stage" id="stage">
+    <!-- SPLASH OVERLAY -->
+    <div id="splashOverlay" style="position:absolute;left:0;top:0;width:100%;height:100%;background:#000;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;">
+      <img src="../../assets/ddsplash.png" alt="Double Diamond" style="max-width:90%;max-height:70%;margin-bottom:24px;" />
+      <button id="splashBtn" class="splash-btn">TAP TO PLAY</button>
+    </div>
+
+   <img src="../../assets/slotbck_2.png" class="machine-bg" id="bgImg" />
+    <div class="machine-frame" id="machineFrame"></div>
+
+    <div id="viewportLayer" class="reel-viewport"></div>
+
+    <div id="winOverlay" style="display:none;position:absolute;left:0;top:140px;width:100%;text-align:center;z-index:4;pointer-events:none;">
+      <div id="winOverlayBox" style="display:inline-block;background:rgba(0,0,0,0.65);border:3px solid #ffd200;border-radius:14px;padding:18px 36px;font-size:48px;font-weight:900;color:#ffd200;box-shadow:0 0 40px rgba(255,210,0,0.9);">
+        WIN <span id="winOverlayAmt">0</span>
+      </div>
+    </div>
+
+   <img id="confetti" src="../../assets/confetti.gif" style="display:none;position:absolute;left:0;top:0;width:100%;height:100%;z-index:10;pointer-events:none;" />
+
+    <div class="hud" id="statusEl">Ready</div>
+
+    <div id="infoPanel">
+      <button id="resetBtn">RESET</button>
+
+      <div class="info-row">
+        <span class="label">BALANCE</span>
+        <span id="balanceVal" class="value">0</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">COINS</span>
+        <span id="coinsVal" class="value">1</span>
+      </div>
+
+      <div class="info-row" id="betSelector">
+        <span class="label">BET</span>
+        <div style="display:flex;gap:6px;">
+          <button class="bet-btn" data-bet="1">1</button>
+          <button class="bet-btn" data-bet="5">5</button>
+          <button class="bet-btn active" data-bet="10">10</button>
+          <button class="bet-btn" data-bet="25">25</button>
+          <button class="bet-btn" data-bet="100">100</button>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <span class="label">WIN</span>
+        <span id="winVal" class="value">0</span>
+      </div>
+
+      <button id="spinBtn">SPIN</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { SYMBOLS, SYMBOL_HEIGHTS, GAME_CONFIG } from '../../core/constants.js';
+    import { PHYSICAL_REEL, PHYSICAL_STOP_SYMBOL } from '../../core/reels.js';
+    import { GEOMETRY } from '../../core/geometry.js';
+    import { spin } from '../../core/spin.js';
+    import { evaluate } from '../../core/payout.js';
+
+    // ===============================
+    // GAME STATE
+    // ===============================
+    let balance = GAME_CONFIG.DEFAULT_BALANCE;
+    let coins = 10;
+    let lastWin = 0;
+    let spinning = false;
+
+    function updateHUD() {
+      document.getElementById("balanceVal").textContent = balance;
+      document.getElementById("coinsVal").textContent = coins;
+      document.getElementById("winVal").textContent = lastWin;
+    }
+
+    function setBet(amount) {
+      coins = amount;
+      updateHUD();
+      document.querySelectorAll(".bet-btn").forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.bet) === amount);
+      });
+    }
+
+    // ===============================
+    // BUILD REEL STRIPS
+    // ===============================
+    function createReelElement() {
+      const reel = document.createElement("div");
+      reel.className = "reel";
+
+      const strip = document.createElement("div");
+      strip.className = "strip";
+
+      // Repeat physical reel 3x for seamless looping
+      for (let repeat = 0; repeat < 3; repeat++) {
+        PHYSICAL_REEL.forEach(stopId => {
+          const symbol = PHYSICAL_STOP_SYMBOL[stopId];
+          const img = document.createElement("img");
+          img.src = SYMBOLS[symbol];
+          img.style.height = SYMBOL_HEIGHTS[symbol] + "px";
+          img.dataset.stopId = stopId;
+          img.dataset.symbol = symbol;
+          strip.appendChild(img);
+        });
+      }
+
+      reel.appendChild(strip);
+      return reel;
+    }
+
+    function initReels() {
+      const viewport = document.getElementById("viewportLayer");
+      viewport.innerHTML = "";
+
+      const layout = [119, 484, 850];
+      const y = 183;
+
+      for (let i = 0; i < 3; i++) {
+        const reelEl = createReelElement();
+        reelEl.style.left = layout[i] + "px";
+        reelEl.style.top = y + "px";
+        viewport.appendChild(reelEl);
+      }
+    }
+
+    // ===============================
+    // SPIN LOGIC
+    // ===============================
+    function spinAll() {
+      const statusEl = document.getElementById("statusEl");
+
+      if (spinning || balance < coins) return;
+
+      spinning = true;
+      balance -= coins;
+      lastWin = 0;
+      updateHUD();
+      statusEl.textContent = "Spinning…";
+
+      const reels = Array.from(document.querySelectorAll(".reel"));
+      const spinResult = spin();
+      let reelsFinished = 0;
+
+      console.log("Spin result:", spinResult);
+
+      // Animate each reel
+      reels.forEach((reel, reelIndex) => {
+        const strip = reel.querySelector(".strip");
+        const target = spinResult.stops[reelIndex];
+
+        animateReel(strip, reelIndex, target, () => {
+          reelsFinished++;
+
+          if (reelsFinished === 3) {
+            spinning = false;
+
+            // Evaluate payout
+            const payoutResult = evaluate(spinResult.symbols, coins);
+            console.log("Payout result:", payoutResult);
+
+            lastWin = payoutResult.payout;
+            balance += payoutResult.payout;
+            updateHUD();
+
+            if (payoutResult.payout > 0) {
+              const overlay = document.getElementById("winOverlay");
+              const amt = document.getElementById("winOverlayAmt");
+              amt.textContent = payoutResult.payout;
+              overlay.style.display = "block";
+              setTimeout(() => overlay.style.display = "none", 1800);
+            }
+
+            if (payoutResult.payout >= GAME_CONFIG.BIG_WIN_THRESHOLD_PER_COIN * coins) {
+              const confetti = document.getElementById("confetti");
+              confetti.style.display = "block";
+              confetti.src = confetti.src;
+              setTimeout(() => confetti.style.display = "none", 3000);
+            }
+
+            statusEl.textContent = "Ready";
+          }
+        });
+      });
+    }
+
+    function animateReel(strip, reelIndex, target, onComplete) {
+      const reelHeight = strip.parentElement.clientHeight;
+      const stripTotalHeight = GEOMETRY.totalHeight;
+
+      // Get target geometry
+      const targetStop = GEOMETRY.stops[target.physicalIndex];
+
+      // Calculate final position to center the target symbol
+      const targetOffset = targetStop.centerY - reelHeight / 2;
+
+      // Add spins (land in middle copy)
+      const cycles = 3;
+      const middleCopyOffset = stripTotalHeight;
+      const finalY = middleCopyOffset + targetOffset;
+      const totalTravel = stripTotalHeight * cycles + finalY;
+
+      const start = performance.now();
+      const duration = GAME_CONFIG.SPIN_TIME + reelIndex * GAME_CONFIG.STAGGER_MS;
+
+      function frame(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        const currentY = eased * totalTravel;
+        const displayY = currentY % stripTotalHeight;
+
+        strip.style.transform = `translateY(${-displayY}px)`;
+
+        if (progress < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          strip.style.transform = `translateY(${-finalY}px)`;
+          onComplete();
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    // ===============================
+    // RESET & SCALING
+    // ===============================
+    function resetGame() {
+      balance = GAME_CONFIG.DEFAULT_BALANCE;
+      lastWin = 0;
+      updateHUD();
+      document.getElementById("statusEl").textContent = "Ready";
+    }
+
+ function scaleStageToFit() {
+  const stage = document.getElementById("stage");
+  if (!stage) return;
+
+  const DESIGN_WIDTH = 1280;
+  const DESIGN_HEIGHT = 900; // Adjust if your background is different
+  
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const SAFE_MARGIN = 16;
+
+  // Calculate scale to fit viewport (both down AND up if needed)
+  const scaleX = (viewportW - SAFE_MARGIN) / DESIGN_WIDTH;
+  const scaleY = (viewportH - SAFE_MARGIN) / DESIGN_HEIGHT;
+  const scale = Math.min(scaleX, scaleY);
+
+  // Apply fixed width, then scale
+  stage.style.width = DESIGN_WIDTH + "px";
+  stage.style.transform = `scale(${scale})`;
+  stage.style.transformOrigin = "top center";
+  stage.style.margin = "0 auto";
+  stage.style.position = "relative";
+}
+    // ===============================
+    // INITIALIZATION
+    // ===============================
+    window.addEventListener("load", () => {
+      initReels();
+      resetGame();
+      scaleStageToFit();
+
+      const splash = document.getElementById("splashOverlay");
+      const splashBtn = document.getElementById("splashBtn");
+
+      if (splash && splashBtn) {
+        splashBtn.addEventListener("click", () => {
+          splash.style.transition = "opacity 0.6s ease";
+          splash.style.opacity = "0";
+          setTimeout(() => splash.style.display = "none", 600);
+        }, { once: true });
+      }
+
+      // Event listeners
+      document.getElementById("spinBtn").addEventListener("click", spinAll);
+      document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+      document.querySelectorAll(".bet-btn").forEach(btn => {
+        btn.addEventListener("click", () => setBet(Number(btn.dataset.bet)));
+      });
+
+      // Keyboard support
+      document.addEventListener("keydown", (e) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          spinAll();
+        }
+      });
+    });
+
+    window.addEventListener("resize", scaleStageToFit);
+  </script>
+</body>
+</html>

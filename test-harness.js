@@ -19,13 +19,18 @@ Outputs:
 - symbol_frequency.csv - Symbol appearance rates per reel
 - virtual_reel_weights.csv - Virtual reel distribution
 - summary.csv - Overall RTP and statistics
+
+REFACTORED VERSION 2.0:
+- Removed PHYSICAL_STOP_SYMBOL references
+- Uses PHYSICAL_REEL and VIRTUAL_REEL_WEIGHTS directly
+- Cleaner code, same functionality
 ===============================================
 */
 
 import fs from 'fs';
 import { spin } from './core/spin.js';
 import { evaluate } from './core/payout.js';
-import { VIRTUAL_REELS, PHYSICAL_STOP_SYMBOL } from './core/reels.js';
+import { VIRTUAL_REELS, VIRTUAL_REEL_WEIGHTS, PHYSICAL_REEL } from './core/reels.js';
 
 // ===============================
 // SIMULATION
@@ -152,18 +157,20 @@ function generateCSVs(stats) {
   csvFiles.push('symbol_frequency.csv');
 
   // Virtual Reel Weights CSV
+  // Use VIRTUAL_REEL_WEIGHTS instead of analyzing arrays
   const weightLines = ["Symbol,Reel 1 Stops,Reel 1 Weight %,Reel 2 Stops,Reel 2 Weight %,Reel 3 Stops,Reel 3 Weight %"];
   const allReelSymbols = new Set();
   const reelWeights = [];
 
   ["REEL1", "REEL2", "REEL3"].forEach((reelName, idx) => {
-    const reel = VIRTUAL_REELS[reelName];
+    const weights = VIRTUAL_REEL_WEIGHTS[reelName];
     const symbolCounts = {};
 
-    reel.forEach(stopId => {
-      const sym = PHYSICAL_STOP_SYMBOL[stopId];
-      symbolCounts[sym] = (symbolCounts[sym] || 0) + 1;
-      allReelSymbols.add(sym);
+    // Count by position weights
+    Object.entries(weights).forEach(([position, count]) => {
+      const symbol = PHYSICAL_REEL[parseInt(position)];
+      symbolCounts[symbol] = (symbolCounts[symbol] || 0) + count;
+      allReelSymbols.add(symbol);
     });
 
     reelWeights[idx] = symbolCounts;

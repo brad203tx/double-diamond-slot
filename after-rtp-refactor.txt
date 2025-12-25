@@ -1,0 +1,57 @@
+
+============================================================
+SLOT MACHINE SIMULATION - 1,000,000 SPINS
+============================================================
+
+Running simulation...
+10.0%20.0%30.0%40.0%50.0%60.0%70.0%80.0%90.0%100.0%100.0% - Completed in 0.58s
+
+============================================================
+OVERALL STATISTICS
+============================================================
+Total Spins:      1,000,000
+Total Wagered:    1,000,000 coins
+Total Won:        950,897 coins
+RTP:              95.0897%
+Hit Frequency:    14.6616%
+Average Win:      6.49 coins per hit
+
+============================================================
+PAR SHEET - TOP 20 WINNING COMBINATIONS
+============================================================
+Combination                    Pays     Count        Frequency    Contribution
+------------------------------------------------------------
+DOUBLE_DIAMOND | DOUBLE_DIAMOND | DOUBLE_DIAMOND 800      6            0.0006%      0.50%
+DOUBLE_DIAMOND | DOUBLE_DIAMOND | SEVEN 320      7            0.0007%      0.24%
+DOUBLE_DIAMOND | SEVEN | DOUBLE_DIAMOND 320      5            0.0005%      0.17%
+SEVEN | DOUBLE_DIAMOND | DOUBLE_DIAMOND 320      1            0.0001%      0.03%
+SEVEN | DOUBLE_DIAMOND | SEVEN 160      11           0.0011%      0.19%
+TRIPLE_BAR | DOUBLE_DIAMOND | DOUBLE_DIAMOND 160      9            0.0009%      0.15%
+DOUBLE_DIAMOND | TRIPLE_BAR | DOUBLE_DIAMOND 160      3            0.0003%      0.05%
+DOUBLE_DIAMOND | SEVEN | SEVEN 160      2            0.0002%      0.03%
+DOUBLE_DIAMOND | DOUBLE_DIAMOND | TRIPLE_BAR 160      5            0.0005%      0.08%
+SEVEN | SEVEN | DOUBLE_DIAMOND 160      10           0.0010%      0.17%
+DOUBLE_DIAMOND | DOUBLE_BAR | DOUBLE_DIAMOND 100      16           0.0016%      0.17%
+DOUBLE_DIAMOND | DOUBLE_DIAMOND | DOUBLE_BAR 100      17           0.0017%      0.18%
+DOUBLE_BAR | DOUBLE_DIAMOND | DOUBLE_DIAMOND 100      14           0.0014%      0.15%
+TRIPLE_BAR | DOUBLE_DIAMOND | TRIPLE_BAR 80       11           0.0011%      0.09%
+TRIPLE_BAR | TRIPLE_BAR | DOUBLE_DIAMOND 80       14           0.0014%      0.12%
+SEVEN | SEVEN | SEVEN          80       17           0.0017%      0.14%
+DOUBLE_DIAMOND | TRIPLE_BAR | TRIPLE_BAR 80       9            0.0009%      0.08%
+DOUBLE_BAR | DOUBLE_DIAMOND | DOUBLE_BAR 50       126          0.0126%      0.66%
+DOUBLE_BAR | DOUBLE_BAR | DOUBLE_DIAMOND 50       124          0.0124%      0.65%
+DOUBLE_DIAMOND | DOUBLE_BAR | DOUBLE_BAR 50       135          0.0135%      0.71%
+
+
+============================================================
+GENERATING CSV FILES
+============================================================
+✓ Created summary.csv
+✓ Created par_sheet.csv
+✓ Created symbol_frequency.csv
+✓ Created virtual_reel_weights.csv
+
+============================================================
+SIMULATION COMPLETE
+============================================================
+

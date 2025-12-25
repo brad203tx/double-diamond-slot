@@ -1,0 +1,6 @@
+{
+  "appId": "com.bradbury.doublediamond",
+  "appName": "Double Diamond Slot",
+  "webDir": "platforms/web",
+  "bundledWebRuntime": false
+}

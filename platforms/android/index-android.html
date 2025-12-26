@@ -647,41 +647,6 @@
     stage.style.margin = "0 auto";
 
     // Show scale info for different devices
-    let scaleInfo = document.getElementById("scaleInfo");
-    if (!scaleInfo) {
-      scaleInfo = document.createElement("div");
-      scaleInfo.id = "scaleInfo";
-      scaleInfo.style.position = "fixed";
-      scaleInfo.style.bottom = "10px";
-      scaleInfo.style.right = "10px";
-      scaleInfo.style.background = "rgba(0,0,0,0.8)";
-      scaleInfo.style.color = "#0f0";
-      scaleInfo.style.padding = "8px";
-      scaleInfo.style.fontSize = "12px";
-      scaleInfo.style.fontFamily = "monospace";
-      scaleInfo.style.zIndex = "99999";
-      scaleInfo.style.borderRadius = "4px";
-      document.body.appendChild(scaleInfo);
-    }
-
-    // Calculate what scale would be on common phone sizes
-    const phoneSizes = [
-      { name: "Small Phone", w: 480, h: 854 },
-      { name: "Medium Phone", w: 720, h: 1280 },
-      { name: "Pixel 6", w: 1080, h: 2340 },
-      { name: "Current Device", w: viewportW, h: viewportH }
-    ];
-
-    let info = "SCALE INFO:\n";
-    phoneSizes.forEach(device => {
-      const sx = (device.w - SAFE_MARGIN) / DESIGN_WIDTH;
-      const sy = (device.h - SAFE_MARGIN) / DESIGN_HEIGHT;
-      const s = Math.min(sx, sy);
-      const pct = (s * 100).toFixed(1);
-      info += `${device.name}: ${pct}%\n`;
-    });
-
-    scaleInfo.textContent = info;
   }
 
   // ==========================================

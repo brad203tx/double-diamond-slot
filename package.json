@@ -9,7 +9,16 @@
     "test:quick": "node test-harness.js 100000",
     "test:thorough": "node test-harness.js 10000000"
   },
-  "keywords": ["slot", "casino", "simulation"],
+  "keywords": [
+    "slot",
+    "casino",
+    "simulation"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0"
+  }
 }
